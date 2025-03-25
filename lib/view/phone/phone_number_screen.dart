@@ -84,7 +84,6 @@ class PhoneNumberScreen extends StatelessWidget {
                               );
                             }
                           } else {
-                            print("jjjjj");
                             Get.snackbar(
                                 'Error', 'Please enter a phone number');
                           }

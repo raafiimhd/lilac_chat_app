@@ -82,14 +82,17 @@ class OTPVerificationScreen extends StatelessWidget {
                       ? null
                       : () async {
                           if (otpController.text.length == 6) {
-                         bool success=    await authController.verifyOtp(
+                            bool success = await authController.verifyOtp(
                               phoneNumber,
                               int.parse(otpController.text),
                             );
                             if (success) {
+                              var responseId = authController.user.first.id;
                               // ✅ Navigate to MessagesScreen after success
                               Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => MessagesScreen(),
+                                builder: (context) => MessagesScreen(
+                                  id: responseId,
+                                ),
                               ));
                             }
                           } else {

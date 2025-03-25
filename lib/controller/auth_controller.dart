@@ -4,14 +4,13 @@ import 'package:get_storage/get_storage.dart';
 import 'package:lilac_chat_app/model/base_url/base_url.dart';
 import 'package:lilac_chat_app/model/sent_otp_model/sent_otp_model.dart';
 import 'package:lilac_chat_app/model/sent_otp_model/verify_otp_model.dart';
-import 'package:lilac_chat_app/view/message/messages_screen.dart';
+import 'package:lilac_chat_app/model/user_model/user_model.dart';
 
 class AuthController extends GetxController {
   final Dio _dio = Dio();
-
+  var user = <UserModel>[].obs;
   // Loading State
   var isLoading = false.obs;
-
   // Function to send OTP
   Future<bool> sendOtp(String phoneNumber) async {
     isLoading.value = true;
@@ -113,30 +112,32 @@ class AuthController extends GetxController {
         ),
       );
 
-      if (response.statusCode == 200) {
-        final data = response.data;
+     if (response.statusCode == 200) {
+  final data = response.data;
+  
+  final accessToken = data['data']?['attributes']?['auth_status']?['access_token'];
 
-        final accessToken =
-            data['data']?['attributes']?['auth_status']?['access_token'];
+  if (accessToken != null) {
+    final storage = GetStorage();
+    storage.write('token', accessToken);
+    user.clear(); // Clear existing data
+    user.add(UserModel.fromJson({
+      ...data['data'],
+      'id': data['data']['id'].toString(), 
+    }));
 
-        if (accessToken != null) {
-          final storage = GetStorage();
-          storage.write('token', accessToken);
-          if (Get.context != null) {
-            Get.snackbar('Success', 'OTP Verified Successfully');
-          }
+    if (Get.context != null) {
+      Get.snackbar('Success', 'OTP Verified Successfully');
+    }
 
-          return true;
-        } else {
-          if (Get.context != null) {
-            Get.snackbar('Error', 'Invalid access token');
-          }
-        }
-      } else {
-        if (Get.context != null) {
-          Get.snackbar('Error', 'OTP Verification Failed');
-        }
-      }
+    return true;
+  } else {
+    if (Get.context != null) {
+      Get.snackbar('Error', 'Invalid access token');
+    }
+  }
+}
+
     } on DioException catch (e) {
       final errorMessage =
           e.response?.data['message'] ?? 'Failed to verify OTP';
@@ -150,5 +151,4 @@ class AuthController extends GetxController {
 
     return false;
   }
-
 }
